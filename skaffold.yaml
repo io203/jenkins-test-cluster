@@ -1,0 +1,30 @@
+apiVersion: skaffold/v1beta2
+kind: Config
+build:
+  artifacts:
+  - image: changeme
+    context: .
+    docker: {}
+  tagPolicy:
+    envTemplate:
+      template: '{{.DOCKER_REGISTRY}}/io203/jenkins-test-cluster:{{.VERSION}}'
+  local: {}
+deploy:
+  kubectl: {}
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - docker: {}
+    tagPolicy:
+      envTemplate:
+        template: '{{.DOCKER_REGISTRY}}/io203/jenkins-test-cluster:{{.DIGEST_HEX}}'
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: jenkins-test-cluster
+        chartPath: charts/jenkins-test-cluster
+        setValueTemplates:
+          image.repository: '{{.DOCKER_REGISTRY}}/io203/jenkins-test-cluster'
+          image.tag: '{{.DIGEST_HEX}}'
